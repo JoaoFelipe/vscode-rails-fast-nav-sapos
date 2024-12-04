@@ -4,6 +4,8 @@ import * as vscode from 'vscode';
 import { getAllMethodNames, getLastMethodName } from './ruby-methods';
 import { classify } from 'inflected';
 import { singularize } from 'inflected';
+import { SwitchFile } from './types';
+import { RailsWorkspace } from './rails-workspace';
 
 function isRailsRoot(filename: string): boolean {
   const railsBin = path.join(filename, 'bin', 'rails');
@@ -75,8 +77,10 @@ export class RailsFile {
     if (this.isModel()) return [this.withoutExt];
     if (this.isView()) return [singularize(path.basename(this.dirname))];
     if (this.isFixture()) return [singularize(this.withoutExt)];
-
     const parts = this.withoutExt.split('_');
+    if (this.isFactory()) {
+      return [parts.slice(1).join('_')];
+    }
 
     if (this.isTest()) {
       return [
@@ -85,6 +89,21 @@ export class RailsFile {
       ];
     }
     return [singularize(parts.slice(0, -1).join('_'))];
+  }
+  relatedFiles(workspace: RailsWorkspace): SwitchFile[] {
+    let relativePath = this.module;
+    let result = this.possibleModelNames().map(modelName => {
+      const model_file = path.join(relativePath, modelName + ".rb")
+      return [
+        {
+          filename: path.join(workspace.appPath, 'models', model_file),
+          title: 'Model ' + model_file,
+          type: 'model',
+        }
+      ];
+    });
+
+    return [].concat.apply([], result);
   }
 
   get railsRoot(): string {
@@ -103,6 +122,9 @@ export class RailsFile {
 
       if (this.dirname.endsWith('fixtures')) {
         return 'fixture';
+      }
+      if (this._parsed.name.startsWith('factory_')) {
+        return 'factory';
       }
 
       if (this._parsed.ext === '.rb') {
@@ -145,6 +167,9 @@ export class RailsFile {
   }
   isFixture() {
     return this.fileType === 'fixture';
+  }
+  isFactory() {
+    return this.fileType === 'factory';
   }
 }
 

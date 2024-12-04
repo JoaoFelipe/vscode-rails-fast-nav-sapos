@@ -30,12 +30,20 @@ export class RailsWorkspace {
     return path.join(this.path, 'spec');
   }
 
+  get factoryPath(): string {
+    return path.join(this.specPath, 'factories');
+  }
+
   get testPath(): string {
     return path.join(this.path, 'test');
   }
 
   get controllersPath(): string {
     return path.join(this.appPath, 'controllers');
+  }
+
+  get helpersPath(): string {
+    return path.join(this.appPath, 'helpers');
   }
 
   get modelsPath(): string {
@@ -46,8 +54,16 @@ export class RailsWorkspace {
     return path.join(this.appPath, 'views');
   }
 
+  get localesPath(): string {
+    return path.join(this.path, 'config', 'locales');
+  }
+
   async hasSpecs(): Promise<boolean> {
     return this.hasFile(this.specPath);
+  }
+
+  async hasFactories(): Promise<boolean> {
+    return this.hasFile(this.factoryPath);
   }
 
   async hasTests(): Promise<boolean> {

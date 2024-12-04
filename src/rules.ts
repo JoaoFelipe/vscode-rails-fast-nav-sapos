@@ -1,11 +1,12 @@
 import { RailsFile } from './rails-file';
 import { RailsWorkspace } from './rails-workspace';
-import { SwitchMaker, SwitchMatcher, SwitchRule } from './types';
+import { SwitchFile, SwitchMaker, SwitchMatcher, SwitchRule } from './types';
 import {
   controllerMaker,
   modelMaker,
   viewMaker,
   specMaker,
+  factoryMaker,
   testMaker,
   inverseTestMaker,
   fixtureMaker,
@@ -26,8 +27,17 @@ function switchRule(matcher: SwitchMatcher, maker: SwitchMaker): SwitchRule {
   };
 }
 
+export function genericMaker(
+  railsFile: RailsFile,
+  workspace: RailsWorkspace
+): SwitchFile[] {
+  return railsFile.relatedFiles(workspace)
+}
+
 export const rules = [
+  switchRule((f, w) => true, genericMaker),
   switchRule((f, w) => w.hasSpecs(), specMaker),
+  switchRule((f, w) => w.hasFactories(), factoryMaker),
   switchRule((f, w) => w.hasTests(), testMaker),
   switchRule((f, w) => f.isTest(), inverseTestMaker),
   switchRule(f => !f.isModel(), modelMaker),
